@@ -1,12 +1,12 @@
+from googletrans import Translator
 import os
 import re
-from googletrans import Translator
 
 def WordCount(text):
     words = text.split()
-    sentences = re.split(r'[.!?]', text)
+    sentences_count = re.split(r'[.!?]', text)
     words_count = len(words)
-    sentences_count = len(sentences) - 1
+    sentences_count = len(sentences_count) - 1
     return words_count, sentences_count
 
 
@@ -22,18 +22,18 @@ def ConfigRead(config_filename):
         return None
 
 def TextTransl():
-    config = ConfigRead('config.txt')
+    config_file = ConfigRead('config.txt')
 
-    if config is None:
-        print("Помилка: конфігураційний файл не знайдено.")
+    if config_file is None:
+        print("Конфігураційний файл не знайдено.")
         return
 
-    input_filename = config.get('Назва файлу з текстом')
-    output_mode = config.get('Куди вивести результат')
-    max_characters = int(config.get('Кількість символів'))
-    max_words = int(config.get('Кількість слів'))
-    max_sentences = int(config.get('Кількість речень'))
-    target_language = config.get('Назва або код мови, на яку необхідно перекласти текст')
+    input_filename = config_file.get('Назва файлу з текстом')
+    output_mode = config_file.get('Куди вивести результат')
+    max_characters = int(config_file.get('Кількість символів'))
+    max_words = int(config_file.get('Кількість слів'))
+    max_sentences = int(config_file.get('Кількість речень'))
+    target_language = config_file.get('Назва або код мови перекладання')
 
     try:
         with open(input_filename, 'r', encoding='utf-8') as input_file:
@@ -42,7 +42,7 @@ def TextTransl():
         text_length = len(text)
         words_count, sentences_count = WordCount(text)
 
-        print("Назва файлу:", input_filename)
+        print("Назва файлу :", input_filename)
         print("Розмір файлу:", os.path.getsize(input_filename), "байт")
         print("Кількість символів:", text_length)
         print("Кількість слів:", words_count)
@@ -57,18 +57,18 @@ def TextTransl():
         translated_text = translator.translate(text, dest=target_language).text
 
         if output_mode == 'file_text.txt':
-            output_filename = f"translate_{input_filename}_{target_language}.txt"
+            output_filename = f"file_translate_text.txt"
             with open(output_filename, 'w', encoding='utf-8') as output_file:
                 output_file.write(translated_text)
-            print("Ok \n Заданий текст перекладено")
+            print("Ok \n Заданий текст перекладено та збережен у file_translate_text.txt")
         elif output_mode == 'екран':
             print("Мова перекладу:", target_language)
             print(translated_text)
         else:
-            print("Помилка: невірно вказаний режим виводу")
+            print("Невірно вказаний режим виводу")
 
     except FileNotFoundError:
-        print("Помилка: файл з текстом не знайдено.")
+        print("Файл з текстом не знайдено.")
     except Exception as e:
         print("Помилка:", str(e))
 
