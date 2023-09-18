@@ -8,7 +8,7 @@ def TransLate(text: str, src: str, dest: str) -> str:
         translated_text = translator.translate(text)
         return translated_text
     except Exception as e:
-        return f"Помилка перекладу: {str(e)}"
+        return f"Помилка : {str(e)}"
 
 def LangDetect(text: str, set: str = "all") -> str:
     try:
@@ -19,9 +19,9 @@ def LangDetect(text: str, set: str = "all") -> str:
         elif set == "confidence":
             return detected_langs[0].prob
         elif set == "all":
-            return f"Мова: {detected_langs[0].lang}, Коефіцієнт довіри: {detected_langs[0].prob}"
+            return f"Мова: {detected_langs[0].lang}\nКоефіцієнт довіри: {detected_langs[0].prob}"
     except Exception as e:
-        return f"Помилка визначення мови: {str(e)}"
+        return f"Помилка : {str(e)}"
 
 def CodeLang(lang: str) -> str:
     try:
@@ -36,7 +36,7 @@ def CodeLang(lang: str) -> str:
         if lang in supported_languages:
             return supported_languages[lang]
 
-        return f"Мову або код мови '{lang}' не знайдено"
+        return f"Код або назва мови '{lang}' не знайдено"
     except Exception as e:
         return f"Помилка: {str(e)}"
 
@@ -45,51 +45,55 @@ def LanguageList(out: str = "screen", text: str = None) -> str:
         translator = GoogleTranslator()
         supported_languages = translator.get_supported_languages(as_dict=True)
 
+
+        table_header = "N\tLanguage\tISO-639 code\t\tText\n" if text else "N\tLanguage\tISO-639 code\n"
+        table_sep = "-" * 53 + "\n" if text else "-" * 38 + "\n"
+
         if out == "screen":
             if text:
-                table = "N\tLanguage\tISO-639 code\tText\n"
-                table += "-" * 50 + "\n"
+                table = table_header
+                table += table_sep
                 for i, (lang, code) in enumerate(supported_languages.items()):
                     detected_lang = detect(text)
                     translation = GoogleTranslator(source=detected_lang, target=code).translate(text)
                     if len(lang) >= 8:
-                        table += f"{i + 1}\t{lang}\t{code}\t\t\t\t{translation}\n"
+                        table += f"{i + 1}\t{lang}\t{code}\t\t\t{translation}\n"
                     else:
-                        table += f"{i + 1}\t{lang}\t\t{code}\t\t\t\t{translation}\n"
+                        table += f"{i + 1}\t{lang}\t\t{code}\t\t\t{translation}\n"
             else:
-                table = "N\tLanguage\tISO-639 code\n"
-                table += "-" * 35 + "\n"
+                table = table_header
+                table += table_sep
                 for i, (lang, code) in enumerate(supported_languages.items()):
                     if len(lang) >= 8:
-                        table += f"{i + 1}\t{lang}\t{code}\n"
-                    else:
                         table += f"{i + 1}\t{lang}\t\t{code}\n"
+                    else:
+                        table += f"{i + 1}\t{lang}\t\t\t{code}\n"
             print(table)
             return "Ok"
         elif out == "file":
             if text:
-                with open("list_lang_transl_ex2.txt", "w", encoding="utf-8") as file:
-                    file.write("N\tLanguage\tISO-639 code\tText\n")
-                    file.write("-" * 50 + "\n")
+                with open("translmod2.txt", "w", encoding="utf-8") as file:
+                    file.write(table_header)
+                    file.write(table_sep)
                     for i, (lang, code) in enumerate(supported_languages.items()):
                         detected_lang = detect(text)
                         translation = GoogleTranslator(source=detected_lang, target=code).translate(text)
                         if len(lang) >= 8:
-                            file.write(f"{i + 1}\t{lang}\t{code}\t\t{translation}\n")
+                            file.write(f"{i + 1}\t{lang}\t{code}\t\t\t{translation}\n")
                         else:
-                            file.write(f"{i + 1}\t{lang}\t\t{code}\t\t{translation}\n")
-                    return "Ok"
+                            file.write(f"{i + 1}\t{lang}\t\t{code}\t\t\t{translation}\n")
+                    return "Ok Таблиця перекладу збережена у {os.getcwd()}\\translmod2.txt"
             else:
-                with open("list_lang_transl_ex2.txt", "w", encoding="utf-8") as file:
-                    file.write("N\tLanguage\tISO-639 code\n")
-                    file.write("-" * 35 + "\n")
+                with open("translmod2.txt", "w", encoding="utf-8") as file:
+                    file.write(table_header)
+                    file.write(table_sep)
                     for i, (lang, code) in enumerate(supported_languages.items()):
                         if len(lang) >= 8:
                             file.write(f"{i + 1}\t{lang}\t{code}\n")
                         else:
                             file.write(f"{i + 1}\t{lang}\t\t{code}\n")
-                    return "Ok"
+                    return "Ok Таблиця перекладу збережена у translmod1.txt"
         else:
-            return "Неправильний параметр 'out'"
+            return "Невірний параметр 'out'"
     except Exception as e:
         return str(e)

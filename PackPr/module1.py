@@ -1,57 +1,56 @@
 from googletrans import Translator, LANGUAGES
 import os
+translator = Translator()
 
+def TransLate(text: str, src: str, dest: str) -> str:
+    try:
+        return Translator().translate(text, src=src, dest=dest).text
+    except Exception as e:
+        return f"Помилка : {str(e)}"
 
-
-def TransLate(text: str, scr: str, dest: str) -> str:
-    translator = Translator()
-    translation = translator.translate(text, src=scr, dest=dest)
-    return translation.text
-
-
-def LangDetect(text: str, set: str) -> str:
-    translator = Translator()
-    detection = translator.detect(text)
-
-    if set == "lang":
-        return detection.lang
-    elif set == "confidence":
-        return str(detection.confidence)
-    else:
-        return f"Language: {detection.lang}, Confidence: {detection.confidence}"
-
+def LangDetect(text: str, set: str = "all") -> str:
+        translator = Translator()
+        try:
+            lang = translator.detect(text)
+            if set == "lang":
+                return lang.lang
+            elif set == "confidence":
+                return str(lang.confidence)
+            else:
+                return f"Мова: {lang.lang} \nКоефіцієнт довіри: {lang.confidence}"
+        except Exception as e:
+            return f"Помилка : {str(e)}"
 
 def CodeLang(lang: str) -> str:
-    translator = Translator()
-    try:
-        lang_code = translator.translate(lang, src='en').src
-        return lang_code
-    except:
-        return "Error: Language code not found."
-
+        lang = lang.lower()
+        if lang in LANGUAGES:
+            return LANGUAGES[lang]
+        elif lang in LANGUAGES.values():
+            return [k for k, v in LANGUAGES.items() if v == lang][0]
+        else:
+             return f"Код або назва мови '{lang}' не знайдено"
 
 def LanguageList(out: str, text: str = None) -> str:
     translator = Translator()
     output = ""
 
+    output += f"N\tLanguage\tISO-639 code\t\tText\n" if text else "N\tLanguage\tISO-639 code\n"
+    output += "-" * 56 + "\n"
+
     if text is not None:
-        output += f"N Language ISO-639 code Text\n"
-        output += "-" * 56 + "\n"
         for idx, (code, lang) in enumerate(LANGUAGES.items(), start=1):
             translation = translator.translate(text, dest=code).text
-            output += f"{idx:<2} {lang:<12} {code:<15} {translation}\n"
+            output += f"{idx:<2}\t {lang:<12}\t {code:<15}\t {translation}\n"
     else:
-        output += f"N Language ISO-639 code\n"
-        output += "-" * 28 + "\n"
         for idx, (code, lang) in enumerate(LANGUAGES.items(), start=1):
-            output += f"{idx:<2} {lang:<12} {code}\n"
+            output += f"{idx:<2}\t {lang:<12}\t {code}\n"
 
     if out == "file":
-        with open("language_list.txt", "w", encoding='utf-8') as file:
+        with open("translmod1.txt", "w", encoding='utf-8') as file:
             file.write(output)
-        return f"Ok: Table written to {os.getcwd()}\\language_list.txt"
+
+        return f"Ok: Таблиця перекладу збережена у translmod1.txt"
     else:
         print(output)
         return "Ok"
-
 
