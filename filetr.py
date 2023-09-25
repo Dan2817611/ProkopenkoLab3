@@ -1,14 +1,4 @@
 from googletrans import Translator
-import os
-import re
-
-def WordCount(text):
-    words = text.split()
-    sentences_count = re.split(r'[.!?]', text)
-    words_count = len(words)
-    sentences_count = len(sentences_count) - 1
-    return words_count, sentences_count
-
 
 def ConfigRead(config_filename):
     config = {}
@@ -21,6 +11,15 @@ def ConfigRead(config_filename):
     except FileNotFoundError:
         return None
 
+def ReadTextFromConfig(input_filename):
+    try:
+        with open(input_filename, 'r', encoding='utf-8') as input_file:
+            text = input_file.read()
+        return text
+    except FileNotFoundError:
+        print("Файл з текстом не знайдено.")
+        return None
+
 def TextTransl():
     config_file = ConfigRead('config.txt')
 
@@ -30,39 +29,55 @@ def TextTransl():
 
     input_filename = config_file.get('Назва файлу з текстом')
     output_mode = config_file.get('Куди вивести результат')
+    target_language = config_file.get('Назва або код мови перекладання')
     max_characters = int(config_file.get('Кількість символів'))
     max_words = int(config_file.get('Кількість слів'))
     max_sentences = int(config_file.get('Кількість речень'))
-    target_language = config_file.get('Назва або код мови перекладання')
+
+    text = ReadTextFromConfig(input_filename)
+
+    if text is None:
+        return
 
     try:
-        with open(input_filename, 'r', encoding='utf-8') as input_file:
-            text = input_file.read()
-
-        text_length = len(text)
-        words_count, sentences_count = WordCount(text)
-
-        print("Назва файлу :", input_filename)
-        print("Розмір файлу:", os.path.getsize(input_filename), "байт")
-        print("Кількість символів:", text_length)
-        print("Кількість слів:", words_count)
-        print("Кількість речень:", sentences_count)
-        print("Мова тексту:", target_language)
-
-        if text_length > max_characters or words_count > max_words or sentences_count > max_sentences:
-            print("Досягнуто максимальну кількість символів, слів або речень.")
-            return
-
         translator = Translator()
-        translated_text = translator.translate(text, dest=target_language).text
 
+        translated_text = ""
+        current_characters = 0
+        current_words = 0
+        current_sentences = 0
+
+        for char in text:
+            if char in [' ', '\n']:
+                current_words += 1
+
+            if char in ['.', '!', '?']:
+                current_sentences += 1
+
+            if current_characters >= max_characters or current_words >= max_words or current_sentences >= max_sentences:
+                if char in ['.', '!', '?']:
+                    translated_text += char
+                break
+
+            translated_text += char
+            current_characters += 1
+
+        # Перевести текст
+        translated_text = translator.translate(translated_text, dest=target_language).text
+
+        # Вывести переведенный текст в консоль
+        print("\nПерекладений текст:")
+        print(translated_text)
+
+        # Сохранить переведенный текст в файл
         if output_mode == 'file_text.txt':
             output_filename = f"file_translate_text.txt"
             with open(output_filename, 'w', encoding='utf-8') as output_file:
                 output_file.write(translated_text)
-            print("Ok \n Заданий текст перекладено та збережен у file_translate_text.txt")
+            print("\nЗаданий текст перекладено та збережено у file_translate_text.txt")
         elif output_mode == 'екран':
             print("Мова перекладу:", target_language)
+            print("\nПерекладений текст:")
             print(translated_text)
         else:
             print("Невірно вказаний режим виводу")
